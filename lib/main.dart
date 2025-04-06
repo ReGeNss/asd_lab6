@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:lab3/graph.dart';
+import 'package:lab3/graph_analyzers/directed_graph_analyzer.dart';
+import 'package:lab3/graph_analyzers/graph_analyzer.dart';
+import 'package:lab3/graph_analyzers/undirected_graph_analyzer.dart';
 
 void main() {
   runApp(const MainApp());
@@ -37,11 +40,17 @@ class _GraphViewWidgetState extends State<GraphViewWidget> {
   @override
   void initState() {
     graph = Graph.generate(isDirected, 550);
+    final a = DirectedGraphAnalyzer(graph.adjacencyMatrix).getCondensedGraph();
+    graph = Graph.directedFromAdjacencyMatrix(a, 550);
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
+    GraphAnalyzer analyzer = isDirected
+        ? DirectedGraphAnalyzer(graph.adjacencyMatrix)
+        : UndirectedGraphAnalyzer(graph.adjacencyMatrix);
+    print(analyzer.getGraphInfo());
     return Column(
       mainAxisSize: MainAxisSize.min,
       spacing: 70,

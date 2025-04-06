@@ -160,6 +160,9 @@ class GraphPainter extends CustomPainter {
   final List<int> perimeter = List.generate(countOfVertex, (index) => index);
   final List<List<int>> lines = [];
   final int nCorners = corners.length;
+  if(countOfVertex <3) {
+    return List.generate(countOfVertex, (index) => [index]);
+  }
   
   for (int i = 0; i < nCorners; i++) {
     int startCorner = corners[i];

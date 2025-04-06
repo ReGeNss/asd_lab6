@@ -6,7 +6,9 @@ import 'package:lab3/graph_painters/undirected_graph_panter.dart';
 const _groopNumber = 41;
 const _variantNumber = 15;
 const _countOfVertex = 11;
-const _k = 1 - 1 * 0.02 - 4 * 0.005 - 0.25; 
+
+// const _k = 1 - 1 * 0.01 - 5 * 0.01 - 0.3; 
+const _k = 1 - 1 * 0.005 - 5 * 0.005 - 0.27;
 
 class Graph {
   final List<List<int>> adjacencyMatrix;
@@ -28,14 +30,20 @@ class Graph {
     return graph;
   }
 
+  factory Graph.directedFromAdjacencyMatrix(List<List<int>> adjacencyMatrix, double size) {
+    Graph graph = Graph._( 
+      DirectedGraphWidget(adjacencyMatrix: adjacencyMatrix, size: size),
+      adjacencyMatrix
+    );
+    return graph;
+  }
+
   static List<List<int>> _generateGraph() {
     Random random = Random(_groopNumber * _variantNumber);
     final randomMatrix = _generateRandomMatrix(random);
     for(int i = 0; i < randomMatrix.length; i++) {
       for(int j = 0; j < randomMatrix[i].length; j++) {
-        if(i == j) {
-          randomMatrix[i][j]*=_k;
-        }
+        randomMatrix[i][j]*=_k;
       }
     }
     final List<List<int>> matrix = [];
