@@ -1,7 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 
-const brokenLineHeigth = 100.0;
+const brokenLineHeight = 100.0;
 const arrowHeadLength = 10.0;
 const arrowAngle = pi / 6; 
 const baseIndex = 2;
@@ -33,6 +33,7 @@ class GraphPainter extends CustomPainter {
   }
 
   void calculateOffsetsOfVertex(Size workAreaSize) {
+    if(offsetsOfVertex.isNotEmpty) return;
     final height = workAreaSize.width * 1.732 / 2; // because of equilateral triangle
     final width = workAreaSize.width;
     final widthOfSide = width / 2;
@@ -43,25 +44,25 @@ class GraphPainter extends CustomPainter {
 
     for(int i = 0; i < countOfVertex; i++) {
       if(i >= sidesIndexes[0] && i < sidesIndexes[1]) {
-        final distanceBetweenVertexByWidht = widthOfSide / countOfVertexOnFirstSide;
+        final distanceBetweenVertexByWidth = widthOfSide / countOfVertexOnFirstSide;
         final distanceBetweenVertexByHeight = height / countOfVertexOnFirstSide;
 
-        final offsetDx = distanceBetweenVertexByWidht * i;
+        final offsetDx = distanceBetweenVertexByWidth * i;
         final offsetDy = height - distanceBetweenVertexByHeight * i;
         offsetsOfVertex.add(Offset(offsetDx, offsetDy));
       }else if( i >= sidesIndexes[1] && i < sidesIndexes[2]) {
-        final distanceBetweenVertexByWidht = widthOfSide / countOfVertexOnSecondSide;
+        final distanceBetweenVertexByWidth = widthOfSide / countOfVertexOnSecondSide;
         final distanceBetweenVertexByHeight = height / countOfVertexOnSecondSide;
         final offsetCoefficient = i - sidesIndexes[1];
 
-        final offsetDx = widthOfSide + distanceBetweenVertexByWidht * offsetCoefficient;
+        final offsetDx = widthOfSide + distanceBetweenVertexByWidth * offsetCoefficient;
         final offsetDy = distanceBetweenVertexByHeight * offsetCoefficient;
         offsetsOfVertex.add(Offset(offsetDx, offsetDy));
       }else {
-        final distanceBetweenVertexByWidht = width / countOfVertexOnThirdSide;
+        final distanceBetweenVertexByWidth = width / countOfVertexOnThirdSide;
         final offsetCoefficient = i - sidesIndexes[2];
 
-        final offsetDx = distanceBetweenVertexByWidht * countOfVertexOnThirdSide + distanceBetweenVertexByWidht * (-offsetCoefficient);
+        final offsetDx = distanceBetweenVertexByWidth * countOfVertexOnThirdSide + distanceBetweenVertexByWidth * (-offsetCoefficient);
         final offsetDy = height;
         offsetsOfVertex.add(Offset(offsetDx, offsetDy));
       }
@@ -88,11 +89,11 @@ class GraphPainter extends CustomPainter {
     );
     
     textPainter.layout(minWidth: circleRadius);
-    final textHeiht = textPainter.height;
+    final textHeight = textPainter.height;
 
     final offsetToText = Offset(
       point.dx - circleRadius / 2, 
-      point.dy - textHeiht / 2
+      point.dy - textHeight / 2
     );
     textPainter.paint(canvas, offsetToText); 
   }
@@ -109,16 +110,16 @@ class GraphPainter extends CustomPainter {
     final double midX = (p1.dx + p2.dx) / 2;
     final double midY = (p1.dy + p2.dy) / 2;
 
-    final double heigth = brokenLineHeigth;
+    final double height = brokenLineHeight;
     final double direction = clockwise ? 1 : -1;
 
-    dx = midX + direction * heigth * normalX;
-    dy = midY + direction * heigth * normalY;
+    dx = midX + direction * height * normalX;
+    dy = midY + direction * height * normalY;
 
     return Offset(dx, dy);
   }
   
-  bool isNeigbour(int indexOfVertex, int indexOfRelatedVertex){
+  bool isNeighbor(int indexOfVertex, int indexOfRelatedVertex){
     bool isA = false; 
     for(int line = 0; line < lines.length; line++){
       if(lines[line].contains(indexOfVertex) && lines[line].contains(indexOfRelatedVertex)){

@@ -1,20 +1,16 @@
 import 'dart:math';
-import 'package:flutter/material.dart';
-import 'package:lab3/graph_painters/directed_graph_painter.dart';
-import 'package:lab3/graph_painters/undirected_graph_panter.dart';
 
-const _groopNumber = 41;
+const _groupNumber = 41;
 const _variantNumber = 15;
 const _countOfVertex = 11;
 
-// const _k = 1 - 1 * 0.01 - 5 * 0.01 - 0.3; 
-const _k = 1 - 1 * 0.005 - 5 * 0.005 - 0.27;
+const _k = 1 - 1 * 0.01 - 5 * 0.005 - 0.15; 
 
 class Graph {
   final List<List<int>> adjacencyMatrix;
-  final Widget graphWidget;
+  // Widget graphWidget;
   
-  Graph._(this.graphWidget, this.adjacencyMatrix);
+  Graph._(this.adjacencyMatrix);
   
   factory Graph.generate(bool isDirected, double size) {
     final adjacencyMatrix = _generateGraph();
@@ -22,9 +18,6 @@ class Graph {
       convertToUnDirected(adjacencyMatrix);
     }
     Graph graph = Graph._( 
-      isDirected 
-        ? DirectedGraphWidget(adjacencyMatrix: adjacencyMatrix, size: size)
-        : UnDirectedGraphWidget(adjacencyMatrix: adjacencyMatrix, size: size),
       adjacencyMatrix
     );
     return graph;
@@ -32,14 +25,13 @@ class Graph {
 
   factory Graph.directedFromAdjacencyMatrix(List<List<int>> adjacencyMatrix, double size) {
     Graph graph = Graph._( 
-      DirectedGraphWidget(adjacencyMatrix: adjacencyMatrix, size: size),
       adjacencyMatrix
     );
     return graph;
   }
 
   static List<List<int>> _generateGraph() {
-    Random random = Random(_groopNumber * _variantNumber);
+    Random random = Random(_groupNumber * _variantNumber);
     final randomMatrix = _generateRandomMatrix(random);
     for(int i = 0; i < randomMatrix.length; i++) {
       for(int j = 0; j < randomMatrix[i].length; j++) {

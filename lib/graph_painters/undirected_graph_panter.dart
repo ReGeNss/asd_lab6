@@ -60,7 +60,7 @@ class _GraphUnDirectedPainter extends GraphPainter {
     paint.style = PaintingStyle.stroke;
     final offsetOfRelatedVertex = offsetsOfVertex[indexOfRelatedVertex];
     
-    if(isNeigbour(indexOfVertex, indexOfRelatedVertex)){
+    if(isNeighbor(indexOfVertex, indexOfRelatedVertex)){
       final clockwise = isClockwise(indexOfVertex, indexOfRelatedVertex);
       drawBrokenLine(canvas, paint, offsetOfVertex, offsetOfRelatedVertex, clockwise);
     }else {

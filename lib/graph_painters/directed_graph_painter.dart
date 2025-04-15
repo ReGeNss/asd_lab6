@@ -1,23 +1,28 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:lab3/graph_painter.dart';
+import 'package:lab3/graph_painters/traversal_painter.dart';
+import 'package:lab3/graph_traversal/traversal.dart';
 
 class DirectedGraphWidget extends StatelessWidget {
-  const DirectedGraphWidget({super.key, required this.adjacencyMatrix, required this.size});
+  const DirectedGraphWidget({super.key, required this.adjacencyMatrix, required this.size, this.vertexInfo = const []});
   final List<List<int>> adjacencyMatrix;
+  final List<TraversalVertexInfo> vertexInfo;
   final double size; 
 
   @override
   Widget build(BuildContext context) {
     return CustomPaint(
       size: Size.square(size),
-      painter: _GraphDirectedPainter(adjacencyMatrix: adjacencyMatrix),
+      painter: vertexInfo.isEmpty 
+        ? GraphDirectedPainter(adjacencyMatrix: adjacencyMatrix)
+        : TraversalPainter(adjacencyMatrix: adjacencyMatrix, vertexInfo: vertexInfo)
     );
   }
 }
 
-class _GraphDirectedPainter extends GraphPainter {
-  _GraphDirectedPainter({required super.adjacencyMatrix});
+class GraphDirectedPainter extends GraphPainter {
+  GraphDirectedPainter({required super.adjacencyMatrix});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -29,10 +34,11 @@ class _GraphDirectedPainter extends GraphPainter {
     textPainter.textAlign = TextAlign.center;
     calculateOffsetsOfVertex(size);
 
-    _drawGraph(canvas, paint, textPainter);
+    drawGraph(canvas, paint, textPainter);
   }
 
-  void _drawGraph(Canvas canvas, Paint paint, TextPainter textPainter) {
+  @protected
+  void drawGraph(Canvas canvas, Paint paint, TextPainter textPainter) {
     final adjacencyMatrixCopy = adjacencyMatrix.map((e) => e.toList()).toList();
 
     for(int i = 0; i < countOfVertex; i++) {
@@ -48,27 +54,23 @@ class _GraphDirectedPainter extends GraphPainter {
         if(isSelfLoop) {
           final sideOfVertex = getSideOfVertex(i);
           drawSelfLoop(canvas,paint, vertexOffset, Sides.values[sideOfVertex-1]);
-        }else if(relationsWithThatVertex[j] == 1 && adjacencyMatrixCopy[j][i] == 1) {
-          _drawLineBetweenVertex(canvas, paint, i, j, vertexOffset , drawStartArrow: true);
-          adjacencyMatrixCopy[j][i] = 0;
         } else if(relationsWithThatVertex[j] == 1) {
-          _drawLineBetweenVertex(canvas, paint, i, j, vertexOffset);          
+          drawLineBetweenVertex(canvas, paint, i, j, vertexOffset);          
         }
         drawText(textPainter, canvas, vertexOffset, (i+1).toString()); 
       }
     }
   }
 
-  void _drawLineBetweenVertex(Canvas canvas, Paint paint, int indexOfVertex, int indexOfRelatedVertex, Offset offsetOfVertex, {bool drawStartArrow = false}) {
+  void drawLineBetweenVertex(Canvas canvas, Paint paint, int indexOfVertex, int indexOfRelatedVertex, Offset offsetOfVertex) {
     paint.style = PaintingStyle.stroke;
     final offsetOfRelatedVertex = offsetsOfVertex[indexOfRelatedVertex];
     
-    if(isNeigbour(indexOfVertex, indexOfRelatedVertex)){
-       
+    if(isNeighbor(indexOfVertex, indexOfRelatedVertex)){
       final clockwise = isClockwise(indexOfVertex, indexOfRelatedVertex);
-      drawBrokenLine(canvas, paint, offsetOfVertex, offsetOfRelatedVertex, clockwise, drawStartArrow);
+      drawBrokenLine(canvas, paint, offsetOfVertex, offsetOfRelatedVertex, clockwise);
     }else {
-      drawArrow(canvas, offsetOfVertex, offsetOfRelatedVertex, paint, drawStartArrow: drawStartArrow);	
+      drawArrow(canvas, offsetOfVertex, offsetOfRelatedVertex, paint, offsetStart: true);	
     }
     paint.style = PaintingStyle.fill;
   }
@@ -79,17 +81,17 @@ class _GraphDirectedPainter extends GraphPainter {
     late final bool clockwise;
     if(Sides.left == side){ 
       clockwise = true;
-      drawArrow(canvas, offsetOfVertex - Offset(1,0), offsetOfVertex, paint);
+      drawArrowHead(canvas, paint, offsetOfVertex + Offset(-20,0), Offset(1,0));
       p1= Offset(offsetOfVertex.dx, offsetOfVertex.dy + circleRadius);
       p2 = Offset(offsetOfVertex.dx- circleRadius, offsetOfVertex.dy);
     }else if(Sides.right == side){ 
       clockwise = false;
-      drawArrow(canvas, offsetOfVertex + Offset(1,0), offsetOfVertex, paint);
+      drawArrowHead(canvas, paint, offsetOfVertex + Offset(20,0), Offset(-1,0));
       p1= Offset(offsetOfVertex.dx + circleRadius, offsetOfVertex.dy);
       p2 = Offset(offsetOfVertex.dx, offsetOfVertex.dy - circleRadius);
     }else{
       clockwise = true;
-      drawArrow(canvas, offsetOfVertex + Offset(0,1), offsetOfVertex, paint);
+      drawArrowHead(canvas, paint, offsetOfVertex + Offset(0,20), Offset(0,-1));
       p1 = Offset(offsetOfVertex.dx, offsetOfVertex.dy + circleRadius);
       p2 = Offset(offsetOfVertex.dx - circleRadius, offsetOfVertex.dy);
     }
@@ -105,34 +107,31 @@ class _GraphDirectedPainter extends GraphPainter {
     paint.style = PaintingStyle.fill;
   }
 
-  void drawBrokenLine(Canvas canvas, Paint paint, Offset p1, Offset p2, bool clockwise, bool drawStartArrow, {double koef = 1} ) { 
+  void drawBrokenLine(Canvas canvas, Paint paint, Offset p1, Offset p2, bool clockwise) { 
     final Offset center = calculateOffsetOfGravityCenter(p1, p2, !clockwise);
-    if(drawStartArrow){
-      drawArrow(canvas, center, p1, paint);
-    }else{
-      canvas.drawLine(p1, center, paint);
-    }
-    drawArrow(canvas, center, p2, paint);
+    final Offset direction = p2 - p1;
+    final double distance = direction.distance;
+    p1 = p1 + direction/distance  * circleRadius;
+    canvas.drawLine(p1, center, paint);
+    drawArrow(canvas, center, p2, paint, offsetStart: false);
   }
 
-  void drawArrow(Canvas canvas, Offset p1, Offset p2, Paint paint, {bool drawStartArrow = false}) {
+  void drawArrow(Canvas canvas, Offset p1, Offset p2, Paint paint, {bool offsetStart = false}) {
     final Offset direction = p2 - p1;
     final double distance = direction.distance;
 
     final Offset unitDir = direction / distance;
+    if(offsetStart){
+      p1 = p1 + unitDir * circleRadius;
+    }
     final Offset arrowTip = p2 - unitDir * circleRadius;
 
     canvas.drawLine(p1, arrowTip, paint);
 
-    _drawArrowHead(canvas, paint, arrowTip, unitDir);
-
-    if (drawStartArrow) {
-      final Offset startTip = p1 + unitDir * circleRadius;
-      _drawArrowHead(canvas, paint,startTip, -unitDir);
-    }
+    drawArrowHead(canvas, paint, arrowTip, unitDir);
   }
 
-  void _drawArrowHead(Canvas canvas, Paint paint, Offset tip, Offset dir) {
+  void drawArrowHead(Canvas canvas, Paint paint, Offset tip, Offset dir) {
     final Offset leftDir = Offset(
       dir.dx * cos(arrowAngle) - dir.dy * sin(arrowAngle),
       dir.dx * sin(arrowAngle) + dir.dy * cos(arrowAngle),
