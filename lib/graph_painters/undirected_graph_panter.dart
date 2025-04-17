@@ -10,13 +10,13 @@ class UnDirectedGraphWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return CustomPaint(
       size: Size.square(size),
-      painter: _GraphUnDirectedPainter(adjacencyMatrix: adjacencyMatrix),
+      painter: GraphUnDirectedPainter(adjacencyMatrix: adjacencyMatrix),
     );
   }
 }
 
-class _GraphUnDirectedPainter extends GraphPainter {
-  _GraphUnDirectedPainter({required super.adjacencyMatrix});
+class GraphUnDirectedPainter extends GraphPainter {
+  GraphUnDirectedPainter({required super.adjacencyMatrix});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -28,10 +28,11 @@ class _GraphUnDirectedPainter extends GraphPainter {
     textPainter.textAlign = TextAlign.center;
     calculateOffsetsOfVertex(size);
 
-    _drawGraph(canvas, paint, textPainter);
+    drawGraph(canvas, paint, textPainter);
+    textPainter.dispose();
   }
 
-  void _drawGraph(Canvas canvas, Paint paint, TextPainter textPainter) {
+  void drawGraph(Canvas canvas, Paint paint, TextPainter textPainter) {
     final adjacencyMatrixCopy = adjacencyMatrix.map((e) => e.toList()).toList();
 
     for(int i = 0; i < countOfVertex; i++) {
@@ -48,7 +49,7 @@ class _GraphUnDirectedPainter extends GraphPainter {
           final sideOfVertex = getSideOfVertex(i);
           drawSelfLoop(canvas,paint, vertexOffset, Sides.values[sideOfVertex-1]);
         }else if(relationsWithThatVertex[j] == 1) {
-          _drawLineBetweenVertex(canvas, paint, i, j, vertexOffset);
+          drawLineBetweenVertex(canvas, paint, i, j, vertexOffset);
           adjacencyMatrixCopy[j][i] = 0;
         }
         drawText(textPainter, canvas, vertexOffset, (i+1).toString()); 
@@ -56,7 +57,7 @@ class _GraphUnDirectedPainter extends GraphPainter {
     }
   }
 
-  void _drawLineBetweenVertex(Canvas canvas, Paint paint, int indexOfVertex, int indexOfRelatedVertex, Offset offsetOfVertex) {
+  void drawLineBetweenVertex(Canvas canvas, Paint paint, int indexOfVertex, int indexOfRelatedVertex, Offset offsetOfVertex) {
     paint.style = PaintingStyle.stroke;
     final offsetOfRelatedVertex = offsetsOfVertex[indexOfRelatedVertex];
     

@@ -1,10 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:lab3/graph.dart';
+import 'package:lab3/graph_painters/backbone_painter.dart';
 import 'package:lab3/graph_painters/directed_graph_painter.dart';
 import 'package:lab3/graph_painters/undirected_graph_panter.dart';
+import 'package:lab3/graph_painters/weight_graph_painter.dart';
 import 'package:lab3/graph_traversal/bfs_traversal.dart';
 import 'package:lab3/graph_traversal/dfs_traversal.dart';
+import 'package:lab3/graph_traversal/mst_prime_traversal.dart';
 import 'package:lab3/graph_traversal/traversal.dart';
+
+const double size = 500;
+
+enum GraphType {
+  mfs,
+  bfs,
+  dfs,
+  directed,
+  undirected,
+  undirectedWeighted,
+}
 
 void main() {
   runApp(const MainApp());
@@ -36,13 +50,15 @@ class GraphViewWidget extends StatefulWidget {
 }
 
 class _GraphViewWidgetState extends State<GraphViewWidget> {
-  bool isDirected = true;
+  bool isDirected = false;
   late Graph graph;
+  GraphType state = GraphType.directed;
   Traversal? traversal;
+  MstPrimeTraversal?  mstTraversal; 
 
   @override
   void initState() {
-    graph = Graph.generate(isDirected, 550);
+    graph = Graph.generate(isDirected, size);
     super.initState();
   }
 
@@ -58,21 +74,38 @@ class _GraphViewWidgetState extends State<GraphViewWidget> {
           children: [
             AdjacencyMatrixWidget(adjacencyMatrix: graph.adjacencyMatrix),
             SizedBox(width: 100),
-            isDirected && traversal != null 
-            ? DirectedGraphWidget(
+            switch(state) {
+              GraphType.directed => DirectedGraphWidget(
+                  adjacencyMatrix: graph.adjacencyMatrix,
+                  size: size,
+                ),
+              GraphType.undirected => UnDirectedGraphWidget(
+                  adjacencyMatrix: graph.adjacencyMatrix,
+                  size: size,
+                ),
+              GraphType.mfs => BackboneUnDirectedGraphWidget(
+                  adjacencyMatrix: graph.adjacencyMatrix,
+                  size: size,
+                  sum: mstTraversal?.mstVertexWeight ?? 0,
+                  weightMatrix: graph.weightMatrix,
+                  mstRes: mstTraversal?.result ?? [],
+                ),
+              GraphType.bfs => DirectedGraphWidget(
+                  adjacencyMatrix: graph.adjacencyMatrix,
+                  vertexInfo: traversal?.vertexInfo ?? [],
+                  size: size,
+                ),
+              GraphType.dfs => DirectedGraphWidget(
+                  adjacencyMatrix: graph.adjacencyMatrix,
+                  vertexInfo: traversal?.vertexInfo ?? [],
+                  size: size,
+                ),
+              GraphType.undirectedWeighted => WeightUnDirectedGraphWidget(
                 adjacencyMatrix: graph.adjacencyMatrix,
-                size: 550,
-                vertexInfo: traversal!.vertexInfo,
-              )
-            : isDirected 
-              ? DirectedGraphWidget(
-                adjacencyMatrix: graph.adjacencyMatrix,
-                size: 550,
-              )
-            : UnDirectedGraphWidget(
-                adjacencyMatrix: graph.adjacencyMatrix,
-                size: 550,
+                size: size,
+                weightMatrix: graph.weightMatrix,
               ),
+            }
           ],
         ),
         Row(
@@ -82,11 +115,29 @@ class _GraphViewWidgetState extends State<GraphViewWidget> {
             FilledButton(
               onPressed: () {
                 setState(() {
-                  isDirected = !isDirected;
-                  graph = Graph.generate(isDirected, 400);
+                  state = GraphType.directed;
+                  graph = Graph.generate(true, size);
                 });
               },
-              child: Text(isDirected ? "show undirected" : "show directed"),
+              child: Text('Directed'),
+            ),
+             FilledButton(
+              onPressed: () {
+                setState(() {
+                  state = GraphType.undirected;
+                  graph = Graph.generate(false, size);
+                });
+              },
+              child: Text('Undirected'),
+            ),
+             FilledButton(
+              onPressed: () {
+                setState(() {
+                  state = GraphType.undirectedWeighted;
+                  graph = Graph.generate(false, size);
+                });
+              },
+              child: Text('Undirected Weighted'),
             ),
             FilledButton(
               onPressed: (){
@@ -95,6 +146,7 @@ class _GraphViewWidgetState extends State<GraphViewWidget> {
                     traversal?.traversalStep();
                     return;
                   }else{
+                    state = GraphType.bfs;
                     traversal = BfsTraversal(graph.adjacencyMatrix);
                     traversal?.startTraversal();
                   }
@@ -109,13 +161,31 @@ class _GraphViewWidgetState extends State<GraphViewWidget> {
                     traversal?.traversalStep();
                     return;
                   }else{
+                    state = GraphType.dfs;
                     traversal = DfsTraversal(graph.adjacencyMatrix);
                     traversal?.startTraversal();
                   } 
                 });
               },
               child: const Text("DFS"),
-            )
+            ),
+              FilledButton(
+              onPressed: () {
+                if(mstTraversal != null){
+                  mstTraversal?.traversalStep();
+                  return;
+                }else{
+                  state = GraphType.mfs;
+                  mstTraversal = MstPrimeTraversal(graph.adjacencyMatrix, graph.weightMatrix);
+                  mstTraversal?.startTraversal();
+                } 
+                setState(() {
+                  
+                });
+              },
+              child: const Text("MFS"),
+            ),
+
           ],
         ),
       ],
